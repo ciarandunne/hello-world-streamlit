@@ -1,50 +1,33 @@
 import streamlit as st
+import random
 
-# --- App Title ---
-st.markdown("<h1 style='text-align: center; color: #4CAF50;'>Regina's Calculator</h1>", unsafe_allow_html=True)
+st.title("🎵 Song Mood Generator")
 
-# --- Session state ---
-if 'display' not in st.session_state:
-    st.session_state.display = ""
-if 'result' not in st.session_state:
-    st.session_state.result = ""
+# Input
+lyrics = st.text_area("Enter lyrics, a topic, or a phrase:")
 
-# --- Functions ---
-def press(key):
-    st.session_state.display += str(key)
+# Mood selection
+mood = st.radio("Select a mood:", ["Happy", "Sad", "Dramatic", "Energetic"])
 
-def clear():
-    st.session_state.display = ""
-    st.session_state.result = ""
+# Generate suggestion
+if st.button("Generate"):
+    emojis = {
+        "Happy": "😄🎶🌞",
+        "Sad": "😢🎵🌧️",
+        "Dramatic": "🎭🎶🔥",
+        "Energetic": "⚡🎵💃"
+    }
+    chords = {
+        "Happy": ["C", "G", "Am", "F"],
+        "Sad": ["Am", "Em", "F", "Dm"],
+        "Dramatic": ["Dm", "G", "C", "Bb"],
+        "Energetic": ["E", "B", "C#m", "A"]
+    }
 
-def calculate():
-    try:
-        st.session_state.result = str(eval(st.session_state.display))
-    except Exception:
-        st.session_state.result = "Error"
-
-# --- Display ---
-st.text_input("Input", value=st.session_state.display, key="display_box", disabled=True)
-st.markdown(f"<h3 style='text-align: right; color: blue;'>{st.session_state.result}</h3>", unsafe_allow_html=True)
-
-# --- Buttons ---
-buttons = [
-    ['7','8','9','/'],
-    ['4','5','6','*'],
-    ['1','2','3','-'],
-    ['0','.','=','+']
-]
-
-for row in buttons:
-    cols = st.columns([1,1,1,1])
-    for i, button in enumerate(row):
-        # Bigger button style using markdown hack
-        if cols[i].button(f"**{button}**", key=f"{row[i]}"):
-            if button == "=":
-                calculate()
-            else:
-                press(button)
-
-# Clear button (full width)
-if st.button("C"):
-    clear()
+    chosen_chords = random.sample(chords[mood], k=3)
+    st.subheader("🎶 Suggested chords:")
+    st.write(" - ".join(chosen_chords))
+    st.subheader("Mood Emojis:")
+    st.write(emojis[mood])
+    st.subheader("Fun description:")
+    st.write(f"Sing '{lyrics}' in a {mood.lower()} style with these chords!")
