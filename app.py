@@ -1,26 +1,39 @@
 import streamlit as st
 
 # App title
-st.title("Regina's Simple Calculator")
+st.title("Regina's Modern Streamlit Calculator")
 
-# Input numbers
-num1 = st.number_input("Enter the first number")
-num2 = st.number_input("Enter the second number")
+# Initialize session state for display and result
+if 'display' not in st.session_state:
+    st.session_state.display = ""
+if 'result' not in st.session_state:
+    st.session_state.result = ""
 
-# Select operation
-operation = st.selectbox("Select an operation", ["Add", "Subtract", "Multiply", "Divide"])
+# Function to update display
+def press(key):
+    st.session_state.display += str(key)
 
-# Calculate result
-if st.button("Calculate"):
-    if operation == "Add":
-        result = num1 + num2
-    elif operation == "Subtract":
-        result = num1 - num2
-    elif operation == "Multiply":
-        result = num1 * num2
-    elif operation == "Divide":
-        if num2 != 0:
-            result = num1 / num2
-        else:
-            result = "Error: Cannot divide by zero"
-    st.write("Result:", result)
+# Function to clear display
+def clear():
+    st.session_state.display = ""
+    st.session_state.result = ""
+
+# Function to calculate result
+def calculate():
+    try:
+        st.session_state.result = str(eval(st.session_state.display))
+    except Exception:
+        st.session_state.result = "Error"
+
+# Display current input and result
+st.text_input("Input", value=st.session_state.display, key="display_box", disabled=True)
+st.text("Result: " + st.session_state.result)
+
+# Calculator buttons
+cols = st.columns(4)
+
+buttons = [
+    ['7','8','9','/'],
+    ['4','5','6','*'],
+    ['1','2','3','-'],
+    ['0]()
