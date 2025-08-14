@@ -1,33 +1,54 @@
 import streamlit as st
+import pandas as pd
 import random
 
-st.title("🎵 Song Mood Generator")
+st.title("💰 Personal Finance Tracker")
 
-# Input
-lyrics = st.text_area("Enter lyrics, a topic, or a phrase:")
+# --- Upload CSV ---
+uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
 
-# Mood selection
-mood = st.radio("Select a mood:", ["Happy", "Sad", "Dramatic", "Energetic"])
-
-# Generate suggestion
-if st.button("Generate"):
-    emojis = {
-        "Happy": "😄🎶🌞",
-        "Sad": "😢🎵🌧️",
-        "Dramatic": "🎭🎶🔥",
-        "Energetic": "⚡🎵💃"
-    }
-    chords = {
-        "Happy": ["C", "G", "Am", "F"],
-        "Sad": ["Am", "Em", "F", "Dm"],
-        "Dramatic": ["Dm", "G", "C", "Bb"],
-        "Energetic": ["E", "B", "C#m", "A"]
-    }
-
-    chosen_chords = random.sample(chords[mood], k=3)
-    st.subheader("🎶 Suggested chords:")
-    st.write(" - ".join(chosen_chords))
-    st.subheader("Mood Emojis:")
-    st.write(emojis[mood])
-    st.subheader("Fun description:")
-    st.write(f"Sing '{lyrics}' in a {mood.lower()} style with these chords!")
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+    
+    # Check required columns
+    required_columns = {"Date", "Description", "Amount"}
+    if not required_columns.issubset(df.columns):
+        st.error("CSV must contain 'Date', 'Description', 'Amount' columns")
+    else:
+        # Initialize categories
+        if 'Category' not in df.columns:
+            df['Category'] = ""
+        
+        # Example: simple auto-categorization rules
+        auto_rules = {
+            "grocery": "Food",
+            "salary": "Income",
+            "rent": "Housing",
+            "uber": "Transport",
+            "coffee": "Food",
+            "restaurant": "Food",
+            "electricity": "Utilities",
+            "water": "Utilities",
+            "internet": "Utilities",
+            "gym": "Health",
+            "bookstore": "Entertainment",
+            "movie": "Entertainment"
+        }
+        
+        def categorize(description):
+            description = str(description).lower()
+            for key, cat in auto_rules.items():
+                if key in description:
+                    return cat
+            return "Uncategorized"
+        
+        df['Category'] = df.apply(lambda row: row['Category'] if row['Category'] else categorize(row['Description']), axis=1)
+        
+        # --- Editable table (Streamlit 1.25+) ---
+        st.subheader("Edit categories")
+        edited_df = st.data_editor(df, num_rows="dynamic")
+        
+        # --- Summary chart ---
+        st.subheader("Spending Summary")
+        summary = edited_df.groupby('Category')['Amount'].sum().sort_values()
+        st.bar_chart(summary)
